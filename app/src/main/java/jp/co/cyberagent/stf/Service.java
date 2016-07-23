@@ -63,7 +63,7 @@ public class Service extends android.app.Service {
     private static final int NOTIFICATION_ID = 0x1;
 
     private List<AbstractMonitor> monitors = new ArrayList<AbstractMonitor>();
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private ExecutorService executor = Executors.newCachedThreadPool();//缓存线程池
     private ServerSocket acceptor;
     private boolean started = false;
     private MessageWriter.Pool writers = new MessageWriter.Pool();
@@ -96,7 +96,7 @@ public class Service extends android.app.Service {
                 .setContentIntent(PendingIntent.getActivity(this, 0, notificationIntent, 0))
                 .setWhen(System.currentTimeMillis())
                 .build();
-
+        //启动前台服务
         startForeground(NOTIFICATION_ID, notification);
     }
 
@@ -105,7 +105,7 @@ public class Service extends android.app.Service {
         super.onDestroy();
 
         Log.i(TAG, "Stopping service");
-
+        //关闭前台服务
         stopForeground(true);
 
         if (acceptor != null) {
@@ -117,8 +117,8 @@ public class Service extends android.app.Service {
         }
 
         try {
-            executor.shutdownNow();
-            executor.awaitTermination(10, TimeUnit.SECONDS);
+            executor.shutdownNow();//关闭线程池
+            executor.awaitTermination(10, TimeUnit.SECONDS);//判断线程池是否关闭
         } catch (InterruptedException e) {
             // Too bad
         } finally {
@@ -127,7 +127,7 @@ public class Service extends android.app.Service {
             // Unfortunately, we have no way to clean up some Binder-based callbacks
             // (namely IRotationWatcher) on lower API levels without killing the process,
             // which will allow DeathRecipient to handle it on their side.
-            Process.killProcess(Process.myPid());
+            Process.killProcess(Process.myPid());//杀掉当前线程
         }
     }
 
@@ -149,14 +149,16 @@ public class Service extends android.app.Service {
 
                 try {
                     acceptor = new ServerSocket(port, backlog, InetAddress.getByName(host));
-
+                    // port 指定服务器要绑定的端口( 服务器要监听的端口)
+                    // backlog 指定客户连接请求队列的长度
+                    // bindAddr 指定服务器要绑定的IP 地址
                     addMonitor(new BatteryMonitor(this, writers));
                     addMonitor(new ConnectivityMonitor(this, writers));
                     addMonitor(new PhoneStateMonitor(this, writers));
                     addMonitor(new RotationMonitor(this, writers));
                     addMonitor(new AirplaneModeMonitor(this, writers));
                     addMonitor(new BrowserPackageMonitor(this, writers));
-
+                    //线程池Start
                     executor.submit(new Server(acceptor));
 
                     started = true;
@@ -198,7 +200,7 @@ public class Service extends android.app.Service {
         @Override
         public void interrupt() {
             super.interrupt();
-
+            //在阻塞时中断线程
             try {
                 acceptor.close();
             } catch (IOException e) {
@@ -215,7 +217,7 @@ public class Service extends android.app.Service {
 
             try {
                 while (!isInterrupted()) {
-                    Connection conn = new Connection(acceptor.accept());
+                    Connection conn = new Connection(acceptor.accept());//启动ServerSocker
                     executor.submit(conn);
                 }
             } catch (IOException e) {
@@ -241,7 +243,7 @@ public class Service extends android.app.Service {
             @Override
             public void interrupt() {
                 super.interrupt();
-
+                //在阻塞时中断线程
                 try {
                     socket.close();
                 } catch (IOException e) {
