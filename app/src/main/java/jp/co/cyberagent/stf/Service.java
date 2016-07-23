@@ -111,8 +111,7 @@ public class Service extends android.app.Service {
         if (acceptor != null) {
             try {
                 acceptor.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 // We don't care
             }
         }
@@ -120,11 +119,9 @@ public class Service extends android.app.Service {
         try {
             executor.shutdownNow();
             executor.awaitTermination(10, TimeUnit.SECONDS);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             // Too bad
-        }
-        finally {
+        } finally {
             started = false;
 
             // Unfortunately, we have no way to clean up some Binder-based callbacks
@@ -163,22 +160,17 @@ public class Service extends android.app.Service {
                     executor.submit(new Server(acceptor));
 
                     started = true;
-                }
-                catch (UnknownHostException e) {
+                } catch (UnknownHostException e) {
                     Log.e(TAG, e.getMessage());
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-            else {
+            } else {
                 Log.w(TAG, "Service is already running");
             }
-        }
-        else if (ACTION_STOP.equals(action)) {
+        } else if (ACTION_STOP.equals(action)) {
             stopSelf();
-        }
-        else {
+        } else {
             Log.e(TAG, "Unknown action " + action);
         }
 
@@ -209,8 +201,7 @@ public class Service extends android.app.Service {
 
             try {
                 acceptor.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -227,16 +218,13 @@ public class Service extends android.app.Service {
                     Connection conn = new Connection(acceptor.accept());
                     executor.submit(conn);
                 }
-            }
-            catch (IOException e) {
-            }
-            finally {
+            } catch (IOException e) {
+            } finally {
                 Log.i(TAG, "Server stopping");
 
                 try {
                     acceptor.close();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                 }
 
                 stopSelf();
@@ -256,8 +244,7 @@ public class Service extends android.app.Service {
 
                 try {
                     socket.close();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -344,17 +331,13 @@ public class Service extends android.app.Service {
 
                         router.route(envelope);
                     }
-                }
-                catch (InvalidProtocolBufferException e) {
+                } catch (InvalidProtocolBufferException e) {
                     Log.e(TAG, e.getMessage());
                     e.printStackTrace();
-                }
-                catch (IOException e) {
-                }
-                catch (Exception e) {
+                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                }
-                finally {
+                } finally {
                     Log.i(TAG, "Connection stopping");
 
                     writers.remove(writer);
@@ -365,8 +348,7 @@ public class Service extends android.app.Service {
 
                     try {
                         socket.close();
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
