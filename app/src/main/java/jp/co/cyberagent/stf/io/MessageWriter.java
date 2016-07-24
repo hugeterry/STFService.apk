@@ -28,6 +28,7 @@ public class MessageWriter implements MessageWritable {
             public void run() {
                 try {
                     message.writeDelimitedTo(out);
+//                    System.out.println(message.toString() );
                 }
                 catch (IOException e) {
                     // The socket went away

@@ -7,11 +7,13 @@ import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.util.Log;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import jp.co.cyberagent.stf.io.MessageWritable;
 import jp.co.cyberagent.stf.proto.Wire;
 
 public class BatteryMonitor extends AbstractMonitor {
-    private static final String TAG  = "STFBatteryMonitor";
+    private static final String TAG = "STFBatteryMonitor";
 
     private BatteryState state = null;
 
@@ -22,7 +24,6 @@ public class BatteryMonitor extends AbstractMonitor {
     @Override
     public void run() {
         Log.i(TAG, "Monitor starting");
-
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -39,14 +40,11 @@ public class BatteryMonitor extends AbstractMonitor {
                     wait();
                 }
             }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             // Okay
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             Log.i(TAG, "Monitor stopping");
 
             context.unregisterReceiver(receiver);
@@ -71,19 +69,42 @@ public class BatteryMonitor extends AbstractMonitor {
                 state.voltage / 1000.0
         ));
 
-        writer.write(Wire.Envelope.newBuilder()
+//        writer.write(Wire.Envelope.newBuilder()
+//                .setType(Wire.MessageType.EVENT_BATTERY)
+//                .setMessage(Wire.BatteryEvent.newBuilder()
+//                        .setStatus(statusLabel(state.status))
+//                        .setHealth(healthLabel(state.health))
+//                        .setSource(sourceLabel(state.source))
+//                        .setLevel(state.level)
+//                        .setScale(state.scale)
+//                        .setTemp(state.temp / 10.0)
+//                        .setVoltage(state.voltage / 1000.0)
+//                        .build()
+//                        .toByteString())
+//                .build());
+        Wire.BatteryEvent be = Wire.BatteryEvent.newBuilder()
+                .setStatus(statusLabel(state.status))
+                .setHealth(healthLabel(state.health))
+                .setSource(sourceLabel(state.source))
+                .setLevel(state.level)
+                .setScale(state.scale)
+                .setTemp(state.temp / 10.0)
+                .setVoltage(state.voltage / 1000.0)
+                .build();
+        Wire.Envelope en = Wire.Envelope.newBuilder()
                 .setType(Wire.MessageType.EVENT_BATTERY)
-                .setMessage(Wire.BatteryEvent.newBuilder()
-                        .setStatus(statusLabel(state.status))
-                        .setHealth(healthLabel(state.health))
-                        .setSource(sourceLabel(state.source))
-                        .setLevel(state.level)
-                        .setScale(state.scale)
-                        .setTemp(state.temp / 10.0)
-                        .setVoltage(state.voltage / 1000.0)
-                        .build()
-                        .toByteString())
-                .build());
+                .setMessage(be.toByteString())
+                .build();
+        writer.write(en);
+        try {
+            //序列化
+            Wire.BatteryEvent newBe = Wire.BatteryEvent.parseFrom(be.toByteString());
+            System.out.println(newBe);
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     private String healthLabel(int health) {

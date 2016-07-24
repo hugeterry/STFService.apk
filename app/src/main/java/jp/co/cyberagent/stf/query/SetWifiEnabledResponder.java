@@ -30,6 +30,7 @@ public class SetWifiEnabledResponder extends AbstractResponder {
                         .build()
                         .toByteString())
                 .build();
+
     }
 
     @Override
