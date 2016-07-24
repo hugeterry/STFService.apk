@@ -97,7 +97,7 @@ public class BatteryMonitor extends AbstractMonitor {
                 .build();
         writer.write(en);
         try {
-            //序列化
+            //反序列化
             Wire.BatteryEvent newBe = Wire.BatteryEvent.parseFrom(be.toByteString());
             System.out.println(newBe);
         } catch (InvalidProtocolBufferException e) {
